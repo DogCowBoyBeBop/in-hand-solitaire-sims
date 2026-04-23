@@ -1,5 +1,5 @@
 #! /usr/bin/env bash
-### DESCRIPTION
+### Simulates the solitaire card game "Shout Out" a specified number of times
 
 
 ##### DEBUG
