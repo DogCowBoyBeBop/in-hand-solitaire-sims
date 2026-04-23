@@ -22,6 +22,7 @@ showHelp (){
 
 function getRandom () {
   # returns a random number up to that supplied in $1
+  # logic from https://1password.community/discussion/comment/107982/#Comment_107982 (Link rot?)
   # this one sets variable "rando" instead
   declare -i power; declare -i aByte; declare -i top
   #TODO handle $1 == 1
@@ -47,23 +48,12 @@ function getRandom () {
 }
 
 disCard () {
-#   >&2 echo "disCard $@" #DEBUG
   for arg in "$@"; do
     unset "myDeck[$arg]"
   done
   myDeck=( "${myDeck[@]}" ) # reindex
 }
 
-# old_playAGame () { 
-#     until [ ${#myDeck[@]} = 0 ]; do
-# #   >&2 echo ""
-#       getRandom 13
-#       if [ $rando -eq ${myDeck[0]} ]; then
-#         return 1
-#       fi
-#       disCard "${myDeck[0]}"
-#     done
-# }
 playAGame () { 
     for i in {0..51}; do
       #getRandom 13 # this is dog slow
@@ -72,14 +62,11 @@ playAGame () {
       while [ $rando -gt 14 ]; do # this is to avoid bias
         rando=$(( RANDOM % 32 + 1 ))
       done
-#   >&2 echo "playAGame mydeck[@]: ${myDeck[*]}"
-#   >&2 echo "playAGame getRandom/mydeck[i]: $rando / ${myDeck[i]}"
       if [ $rando -eq ${myDeck[i]} ]; then
         return 1
       else
         score=$(( $score + 1 ))
       fi
-#       disCard "${myDeck[0]}"
     done
 }
 
@@ -104,19 +91,15 @@ else
 fi
 
 for ((c=1;c<=END;c++)); do
-#   >&2 echo " --- C COUNT=${c} ---" #DEBUG
   score=0
   myDeck=( $(shuf -e "${deck52[@]}") )
   playAGame
-#   score="${#myDeck[0]}"
   if [ $score -lt $lowScore ] ; then lowScore=$score; fi
   if [ $score -gt $highScore ] ; then highScore=$score; fi
   scoreArr+=("$score")
   if [ $score = 52 ]; then perfectGames=$(( $perfectGames + 1 )); fi 
   if [ $score = 0 ]; then flubbedGames=$(( $flubbedGames + 1 )); fi 
   if [ $score -ge 26 ]; then halfDeckGames=$(( $halfDeckGames + 1 )); fi
-#   [ "${i}" -gt 100 ] && break #DEBUG
-#   breakpoint
 done
 
 # REPORT
@@ -124,24 +107,10 @@ echo "--REPORT--"
 echo "games = $END games"
 echo "high score = $highScore"
 echo "low score = $lowScore"
-
 sortArr=( $(printf '%s\n' "${scoreArr[@]}" | sort -n) ) # -n to sort numerically
 median=$(( ${#scoreArr[@]} / 2 ))
 echo "median score = ${sortArr[$median]}"
-# >&2 echo "scale=4; $perfectGames / $END" #DEBUG
 echo "perfect games = $perfectGames  %$(echo "scale=4; $perfectGames / $END" | bc)"
 echo "flubbed games = $flubbedGames  %$(echo "scale=4; $flubbedGames / $END" | bc)"
 echo "half deck games = $halfDeckGames  %$(echo "scale=4; $halfDeckGames / $END" | bc)"
  
-# --REPORT--
-# games = 200000 games
-# high score = 52
-# low score = 0
-# median score = 9
-# perfect games = 14338  %.0716
-# two card games = 12376  %.0618
-# decent games = 51285  %.2564
-# 
-# real	7m2.036s
-# user	2m27.953s
-# sys	3m11.708s
